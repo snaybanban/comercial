@@ -1,0 +1,108 @@
+{% extends 'layout.html' %}
+{% block title %}Cart{%endblock%}
+{%block tt%} 
+  {% if empty %}
+    <h1>Your cart is empty <a href="{% url 'products' %}" class="badge badge-secondary">Visit Menu</a></h1>
+  {% else %} 
+  {%endif%}
+{%endblock%}
+{% block content %}
+{% if not empty %}
+<center><h2>{{request.user}}- Carrito</h2></center>
+<table class="table">
+    <thead class="thead-dark">
+      <tr>
+        <th scope="col">Item</th>
+        <th scope="col">Cantidad de logo</th>
+        <th scope="col">Precio</th>
+        <th scope="col"><a class="btn btn-secondary" data-toggle="tooltip"  title="Removes all items from cart" href="{% url 'empty_cart' %}">Carro vacio</a></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for cart_item in cart_items %}
+        <tr>
+            <th scope="row">
+            {{cart_item.item_detail}}
+                {% if cart_item.topping.all %}
+                <span class="text-muted">[
+                {%for topping in cart_item.topping.all %}
+                {{topping.name}} 
+                {%endfor%}
+                ]</span>
+                {%endif%}
+            </th>
+            <td>{{cart_item.size}}</td>
+            <td>${{cart_item.price}}</td>
+            <td><a href="{% url 'remove_item' cart_item.pk %}">Remover Pedido</a></td>
+        </tr>
+    {%endfor%}
+    </tbody>
+</table><br><br>
+<div class="jumbotron">
+  <h1 class="display-5">Total: ${{cart.total}}</h1>
+  <p class="lead">Cantidad pagable</p>
+  <hr class="my-4">
+  <p>Haga clic aquí para confirmar y realizar su pedido</p>
+  <a class="btn btn-primary btn-lg" href="{% url 'order' %}" role="button">Nuevo pedido</a>
+  <div id="smart-button-container">
+    <div style="text-align: center;">
+      <div id="paypal-button-container"></div>
+    </div>
+  </div>
+<script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD" data-sdk-integration-source="button-factory"></script>
+<script>
+  function initPayPalButton() {
+    paypal.Buttons({
+      style: {
+        shape: 'rect',
+        color: 'gold',
+        layout: 'vertical',
+        label: 'paypal',
+        
+      },
+
+      createOrder: function(data, actions) {
+        return actions.order.create({
+          purchase_units: [{"amount":{"currency_code":"USD","value":1}}]
+        });
+      },
+
+      onApprove: function(data, actions) {
+        return actions.order.capture().then(function(details) {
+          alert('Transaction completed by ' + details.payer.name.given_name + '!');
+        });
+      },
+
+      onError: function(err) {
+        console.log(err);
+      }
+    }).render('#paypal-button-container');
+  }
+  initPayPalButton();
+</script>
+<script>
+    
+
+  // Set starting value of counter to 0
+  if (!localStorage.getItem('counter'))
+      localStorage.setItem('counter', 0);
+
+  // Load current value of  counter
+  document.addEventListener('DOMContentLoaded', () => {
+      document.querySelector('#counter').innerHTML = localStorage.getItem('counter');
+
+      // Count every time button is clicked
+      document.querySelector('button').onclick = () => {
+          // Increment current counter
+          let counter = localStorage.getItem('counter');
+          counter++;
+
+          // Update counter
+          document.querySelector('#counter').innerHTML = counter;
+          localStorage.setItem('counter', counter);
+      }
+  });
+</script>
+</div>
+{%endif%}
+{%endblock%}
